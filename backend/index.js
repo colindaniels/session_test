@@ -35,7 +35,6 @@ app.use('/api/softLogout', bodyParser.text({ type: 'text/plain' }));
 async function verifyToken(token) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    // Find the student by decoded token id
     const student = await Student.findOne({ _id: decoded.id });
     if (!student) {
       return null;
@@ -71,7 +70,7 @@ app.post('/api/authenticate_session', async (req, res) => {
       { $set: { isOnline: true } }
     );
 
-    return res.status(200).send('USER AUTHENTICATED. Accessed from server.');
+    return res.status(200).send(`User ${student._id} is authenticated. This is a secure message only sent to auth users`);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Internal server error' });
@@ -94,7 +93,7 @@ app.post('/api/login', async (req, res) => {
 
 
     const token = jwt.sign({ id: student._id }, JWT_SECRET, { expiresIn: '2m' });
-    
+
     await updateSession(id, token, true);
 
     return res.status(200).json({ message: 'Login successful', token });
@@ -131,10 +130,13 @@ app.post('/api/softLogout', async (req, res) => {
 
     if (event && token) {
       const student = await verifyToken(token);
-      await Student.updateOne(
-        { _id: student._id },
-        { $set: { isOnline: false } }
-      )
+      if (student) {
+        await Student.updateOne(
+          { _id: student._id },
+          { $set: { isOnline: false } }
+        )
+      }
+
     }
 
   } catch (err) {
@@ -159,7 +161,6 @@ function isTokenValid(token) {
 }
 
 // every 15 minutes
-//schedule.scheduleJob('*/15 * * * *', async () => {
 schedule.scheduleJob('*/1 * * * *', async () => {
   console.log('Running periodic JWT cleanup...');
 
@@ -181,6 +182,18 @@ schedule.scheduleJob('*/1 * * * *', async () => {
     console.error('Error during JWT cleanup:', err);
   }
 });
+
+
+
+app.get('/api/ping', async(req, res) => {
+  try {
+    // statically typed for admin page because this isnt a real admin page.
+    const student = await Student.findOne({ _id: 'cdaniels' });
+    return res.status(200).send(student.isOnline);
+  } catch (err) {
+    console.error('Error during JWT cleanup:', err);
+  }
+})
 
 
 
