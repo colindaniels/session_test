@@ -191,16 +191,12 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   }
   
-  /* 
-     Using the "new" Vue 3 transition naming:
-     .fade-right-enter-from, .fade-right-enter-to, .fade-right-leave-from, .fade-right-leave-to
-  */
+
   .fade-right-enter-active,
   .fade-right-leave-active {
     transition: transform 0.4s ease, opacity 0.4s ease;
   }
   
-  /* ENTRANCE (from → to) */
   .fade-right-enter-from {
     opacity: 0;
     transform: translateX(100%);
